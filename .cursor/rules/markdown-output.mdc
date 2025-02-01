@@ -2,9 +2,13 @@
 description: Formatting markdown output
 globs: *.md
 ---
-# Be careful when nesting markdown fenced code blocks
-- Wrap the beginning and end of your answer in a backtick-delimited fenced code block
-- If there are code snippets, do not wrap the beginning and end of your answers inside backticks. Instead, wrap the code snippet in a fenced code blocks that is delimited with three tilde characters. 
+# Rules for editing Markdown files
+These rules apply when modifying .md files in the codebase.
+
+## Nesting Code Blocks in Markdown
+When editing markdown files that need to show code blocks:
+- Wrap the markdown file's content in a backtick-delimited fenced code block
+- For code snippets within the markdown, use tilde-delimited (~~~) fenced blocks
 
 <EXAMPLE> 
 ```markdown
