@@ -1,0 +1,15 @@
+#compdef settings
+
+_macos_system_settings() {
+    local -a panels
+    
+    # Get available settings panels
+    for panel in $(_get_system_settings); do
+        # Simple description without case manipulation
+        panels+=("$panel:Open $panel settings")
+    done
+
+    _describe 'settings panel' panels
+}
+
+_macos_system_settings "$@" 
