@@ -1,0 +1,17 @@
+---
+description: Formatting markdown output
+globs: *.md
+---
+# Be careful when nesting markdown fenced code blocks
+- Wrap the beginning and end of your answer in a backtick-delimited fenced code block
+- If there are code snippets, do not wrap the beginning and end of your answers inside backticks. Instead, wrap the code snippet in a fenced code blocks that is delimited with three tilde characters. 
+
+<EXAMPLE> 
+```markdown
+
+Now I want to have a fenced code block: 
+~~~bash
+open .
+~~~~
+```
+</EXAMPLE>
