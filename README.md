@@ -21,12 +21,12 @@ open "x-apple.systempreferences:com.apple.Displays-Settings.extension"
 1. **Clone** this repository into `$ZSH_CUSTOM/plugins` (by default `~/.oh-my-zsh/custom/plugins`):
    ~~~bash
    git clone https://github.com/codekiln/macos-system-settings-zsh-completions.git \
-     ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/macos-system-settings
+     ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/macos-system-settings-zsh-completions
    ~~~
 
 2. **Add** the plugin to your Oh My Zsh configuration in `~/.zshrc`:
    ~~~bash
-   plugins=(... macos-system-settings)
+   plugins=(... macos-system-settings-zsh-completions)
    ~~~
 
 3. **Restart** your shell or run:

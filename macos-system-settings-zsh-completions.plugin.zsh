@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # ------------------------------------------------------------------------
-# macos-system-settings.plugin.zsh
+# macos-system-settings-zsh-completions.plugin.zsh
 #
 # This plugin provides a `settings` command for opening System Settings 
 # (Ventura+), or System Preferences (older macOS). For macOS 15, we read 
