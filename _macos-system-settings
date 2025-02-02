@@ -1,13 +1,24 @@
 #compdef settings
 
 _macos_system_settings() {
-    # We'll call _get_system_settings (from plugin) to get lines
-    local -a panels
-    panels=($(_get_system_settings))
+  local -a panels
+  local line
+  local label
+  local identifier
 
-    # Possibly prettify each line if you like. 
-    # For now, just pass them directly:
-    _describe -V 'settings panel' panels
+  # We call _get_system_settings() from the plugin. 
+  # Each line is "Label|Identifier".
+  while IFS= read -r line; do
+    label="${line%%|*}"
+    identifier="${line#*|}"
+
+    # We'll show "label" in the completion list,
+    # with a short help message like "Open <label> settings".
+    panels+=("$label:Open $label settings")
+  done < <(_get_system_settings)
+
+  # Present them to Zsh
+  _describe -V 'settings panel' panels
 }
 
 _macos_system_settings "$@"
