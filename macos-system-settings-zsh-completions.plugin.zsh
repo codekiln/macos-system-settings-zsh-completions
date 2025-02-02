@@ -161,7 +161,6 @@ settings() {
 
 # completion function
 #compdef settings
-
 _macos_system_settings() {
   local -a panels
   local line
@@ -182,5 +181,3 @@ _macos_system_settings() {
   # Present them to Zsh
   _describe -V 'settings panel' panels
 }
-
-_macos_system_settings "$@"
