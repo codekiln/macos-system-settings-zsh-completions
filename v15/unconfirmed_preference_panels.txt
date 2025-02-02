@@ -1,0 +1,11 @@
+com.apple.AirDrop-Handoff-Settings.extension
+com.apple.Coverage-Settings.extension
+com.apple.Date-Time-Settings.extension
+com.apple.Localization-Settings.extension
+com.apple.LoginItems-Settings.extension
+com.apple.Profiles-Settings.extension
+com.apple.Sharing-Settings.extension
+com.apple.Software-Update-Settings.extension
+com.apple.Startup-Disk-Settings.extension
+com.apple.Time-Machine-Settings.extension
+com.apple.Transfer-Reset-Settings.extension
