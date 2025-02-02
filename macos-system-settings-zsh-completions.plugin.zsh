@@ -94,90 +94,79 @@ settings() {
         return 0
     fi
 
-    if (( osver >= 15 )); then
-        # On macOS 15, we’ll do partial or exact match against the lines from the text files.
-        local all_ids
-        all_ids=($(_get_macos_15_identifiers))
+    local raw_ids
+    raw_ids=($(_get_system_settings))  # e.g. com.apple.Displays-Settings.extension, etc.
 
-        # 1) Try exact match
-        local matched_id
-        for id in "${all_ids[@]}"; do
-            if [[ "$id" == "$panel" ]]; then
-                matched_id="$id"
+    # We'll do a function to produce the same "label" we used in the completion:
+    local transform_raw_to_label() {
+      local tmp="$1"
+      tmp="${tmp#com.apple.}"          # remove leading com.apple.
+      tmp="${tmp%.extension}"          # remove trailing .extension
+      echo "$tmp"
+    }
+
+    # Try to match the user input against each label
+    local matched_raw=""
+
+    # 1) Attempt exact, case-insensitive
+    for r in "${raw_ids[@]}"; do
+        local label="$(transform_raw_to_label "$r")"
+        if [[ "${label:l}" == "${panel:l}" ]]; then
+            matched_raw="$r"
+            break
+        fi
+    done
+
+    # 2) If no exact match found, attempt a partial/substring match
+    if [[ -z "$matched_raw" ]]; then
+        for r in "${raw_ids[@]}"; do
+            local label="$(transform_raw_to_label "$r")"
+            if [[ "${label:l}" == *"${panel:l}"* ]]; then
+                matched_raw="$r"
                 break
             fi
         done
-
-        # 2) If we didn't find an exact match, do a case-insensitive partial match.
-        if [[ -z "$matched_id" ]]; then
-            for id in "${all_ids[@]}"; do
-                # Convert both sides to lowercase and see if it "contains" the user's input
-                if [[ "${id:l}" == *"${panel:l}"* ]]; then
-                    matched_id="$id"
-                    break
-                fi
-            done
-        fi
-
-        if [[ -n "$matched_id" ]]; then
-            _debug "Opening: x-apple.systempreferences:${matched_id}"
-            open "x-apple.systempreferences:${matched_id}"
-            return 0
-        fi
-    else
-        # For older macOS: search the .prefPane by exact or partial name
-        if [[ -d "$LEGACY_SETTINGS_PATH" ]]; then
-            # Attempt to find a prefPane whose base name matches panel
-            local found_pane
-            found_pane="$(
-                find "$LEGACY_SETTINGS_PATH" -name "*.prefPane" -exec basename {} .prefPane \; \
-                  | grep -i "^${panel}$" \
-                  | head -n 1
-            )"
-
-            # If no exact match, do partial
-            if [[ -z "$found_pane" ]]; then
-                found_pane="$(
-                    find "$LEGACY_SETTINGS_PATH" -name "*.prefPane" -exec basename {} .prefPane \; \
-                      | grep -i "${panel}" \
-                      | head -n 1
-                )"
-            fi
-
-            if [[ -n "$found_pane" ]]; then
-                _debug "Opening legacy prefPane: $found_pane"
-                open -b com.apple.systempreferences "$LEGACY_SETTINGS_PATH/${found_pane}.prefPane" 2>/dev/null \
-                  && return 0
-            fi
-        fi
     fi
 
-    # If we get here, we failed to find a matching panel
-    echo "Failed to open settings panel: '$panel'"
-    echo "Available panels:"
-    _get_system_settings | sed 's/^/  /'
-    return 1
+    # If still empty, no match was found
+    if [[ -z "$matched_raw" ]]; then
+        echo "Failed to find settings panel: $panel"
+        echo "Available panels:"
+        _get_system_settings | sed 's/^/  /'
+        return 1
+    fi
+
+    # Now open matched_raw
+    if (( osver >= 15 )); then
+        open "x-apple.systempreferences:$matched_raw"
+    else
+        # old macOS fallback
+        open -b com.apple.systempreferences \
+           "$LEGACY_SETTINGS_PATH/${matched_raw}.prefPane"
+    fi
 }
 
 # completion function
 #compdef settings
+#compdef settings
 _macos_system_settings() {
   local -a panels
-  local line
-  local label
-  local identifier
+  local raw label
 
-  # We call _get_system_settings() from the plugin. 
-  # Each line is "Label|Identifier".
-  while IFS= read -r line; do
-    label="${line%%|*}"
-    identifier="${line#*|}"
+  while IFS= read -r raw; do
+    # If raw == "com.apple.Displays-Settings.extension", produce "Displays-Settings"
+    label="$raw"
+    label="${label#com.apple.}"          # remove leading "com.apple."
+    label="${label%.extension}"          # remove trailing ".extension" if present
+    # (you can also remove "systempreferences." or other patterns if needed)
 
-    # We'll show "label" in the completion list,
-    # with a short help message like "Open <label> settings".
-    panels+=("$label:Open $label settings")
+    # Provide "label" as the typed completion, 
+    # and a short help text "Open <label>" or "Open <raw>," your choice:
+    # The left part before the colon is what's inserted on the command line,
+    # The right part after the colon is the short help text.
+    panels+=("$label:Open $label")
   done < <(_get_system_settings)
 
-  # Present them to Zsh
+  # Now let Zsh do its standard prefix matching (e.g. "disp" matches "Displays-Settings").
   _describe -V 'settings panel' panels
 }
