@@ -44,19 +44,15 @@ That’s it! Now typing `settings` followed by a partial name and pressing `<TAB
   ~~~
   You’ll see suggestions like:
   ~~~
-  $ settings com.apple.
-  com.apple.Accessibility-Settings.extension                  -- Open com.apple.Accessibility-Settings.extension settin
-  com.apple.AirDrop-Handoff-Settings.extension                -- Open com.apple.AirDrop-Handoff-Settings.extension sett
-  com.apple.Appearance-Settings.extension                     -- Open com.apple.Appearance-Settings.extension settings
-  com.apple.Battery-Settings.extension                        -- Open com.apple.Battery-Settings.extension settings
-  com.apple.BluetoothSettings                                 -- Open com.apple.BluetoothSettings settings
-  com.apple.CD-DVD-Settings.extension                         -- Open com.apple.CD-DVD-Settings.extension settings
-  com.apple.Classroom-Settings.extension                      -- Open com.apple.Classroom-Settings.extension settings
-  com.apple.ClassroomSettings                                 -- Open com.apple.ClassroomSettings settings
-  com.apple.ControlCenter-Settings.extension                  -- Open com.apple.ControlCenter-Settings.extension settin
-  com.apple.Coverage-Settings.extension                       -- Open com.apple.Coverage-Settings.extension settings
-  com.apple.Date-Time-Settings.extension                      -- Open com.apple.Date-Time-Settings.extension settings
-  com.apple.Desktop-Settings.extension                        -- Open com.apple.Desktop-Settings.extension settings
+  $ settings                        
+Accessibility-Settings                            -- Open Accessibility-Settings panel
+AirDrop-Handoff-Settings                          -- Open AirDrop-Handoff-Settings panel
+Appearance-Settings                               -- Open Appearance-Settings panel
+Battery-Settings                                  -- Open Battery-Settings panel
+BluetoothSettings                                 -- Open BluetoothSettings panel
+CD-DVD-Settings                                   -- Open CD-DVD-Settings panel
+Classroom-Settings                                -- Open Classroom-Settings panel
+ClassroomSettings                                 -- Open ClassroomSettings panel
    ~~~
 
 - **Open a specific panel**:
