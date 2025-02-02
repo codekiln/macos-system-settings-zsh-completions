@@ -20,7 +20,7 @@ open "x-apple.systempreferences:com.apple.Displays-Settings.extension"
 
 1. **Clone** this repository into `$ZSH_CUSTOM/plugins` (by default `~/.oh-my-zsh/custom/plugins`):
    ~~~bash
-   git clone https://github.com/yourusername/macos-system-settings-zsh-completions \
+   git clone https://github.com/codekiln/macos-system-settings-zsh-completions.git \
      ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/macos-system-settings
    ~~~
 
