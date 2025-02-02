@@ -51,7 +51,7 @@ declare -A macos_settings_links=(
     ["UsersGroups"]="com.apple.Users-Groups-Settings.extension"
     ["WalletApplePay"]="com.apple.Wallet"
     ["Wallpaper"]="com.apple.Wallpaper-Settings.extension"
-    ["WiFi"]="com.apple.Wi-Fi-Settings.extension"
+    ["WiFi"]="com.apple.wifi-settings-extension"
 )
 
 # Legacy path for older macOS versions
