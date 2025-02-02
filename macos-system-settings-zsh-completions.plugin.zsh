@@ -142,3 +142,6 @@ _macos_system_settings() {
 
   _describe -V 'settings panel' panels
 }
+
+# Force Zsh to use this function for `settings` completion
+compdef _macos_system_settings settings
