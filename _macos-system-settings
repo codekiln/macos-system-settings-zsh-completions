@@ -1,17 +1,13 @@
 #compdef settings
 
 _macos_system_settings() {
+    # We'll call _get_system_settings (from plugin) to get lines
     local -a panels
-    local panel
+    panels=($(_get_system_settings))
 
-    # Get available settings panels
-    for panel in $(_get_system_settings); do
-        # Create description by adding spaces before capital letters and removing slashes
-        local desc=$(echo $panel | sed 's,/\(.*\), \1,g' | sed 's/\([A-Z]\)/ \1/g' | sed 's/^ //')
-        panels+=("$panel:Open$desc settings")
-    done
-
+    # Possibly prettify each line if you like. 
+    # For now, just pass them directly:
     _describe -V 'settings panel' panels
 }
 
-_macos_system_settings "$@" 
+_macos_system_settings "$@"
