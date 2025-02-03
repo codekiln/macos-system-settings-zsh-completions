@@ -1,199 +1,74 @@
 #!/usr/bin/env zsh
 #
-# macos-system-settings.plugin.zsh
+# update-macos-settings-bundle-identifiers.zsh
 #
-# Provides a `settings` command and a function `_get_system_settings` that
-# returns lines in the form "label|identifier". Example:
-#   "Displays|com.apple.Displays-Settings.extension"
-#   "Touch-ID|com.apple.Touch-ID-Settings.extension"
-#
+# Gathers known macOS 15 System Settings bundle identifiers from Sidebar.plist,
+# plus potential .extension IDs from the System Settings binary.
 
-# Directory of this plugin, so we can load relative files
-PLUGIN_DIR="${0:A:h}"
+set -euo pipefail
 
-# Where we store the known macOS 15 identifiers
-BUNDLE_FILE_15="$PLUGIN_DIR/v15/macOS_System_Settings_bundle_identifiers.txt"
-UNCONFIRMED_FILE_15="$PLUGIN_DIR/v15/unconfirmed_preference_panels.txt"
+# Quick OS version check
+MAC_VER=$(sw_vers -productVersion | cut -d '.' -f1)
+if [[ "$MAC_VER" -lt 15 ]]; then
+  echo "This script expects macOS 15 (Sequoia). You appear to be on: $MAC_VER"
+  exit 1
+fi
 
-LEGACY_SETTINGS_PATH="/System/Library/PreferencePanes"
+SIDEBAR_PLIST="/System/Applications/System Settings.app/Contents/Resources/Sidebar.plist"
+SETTINGS_BIN="/System/Applications/System Settings.app/Contents/MacOS/System Settings"
 
-# -----------------------------------------------------------
-# Helper: Return major macOS version (14, 15, etc.)
-# -----------------------------------------------------------
-_get_macos_version() {
-    local ver
-    ver="$(sw_vers -productVersion)"
-    echo "${ver%%.*}"
-}
+if [[ ! -f "$SIDEBAR_PLIST" ]]; then
+  echo "Error: $SIDEBAR_PLIST not found. (Are you on an early beta or different path?)"
+  exit 1
+fi
 
-# -----------------------------------------------------------
-# For macOS 15: read lines from the discovered text files
-# and convert them into "label|identifier".
-# -----------------------------------------------------------
-_get_macos_15_identifiers() {
-    local lines=()
+if [[ ! -f "$SETTINGS_BIN" ]]; then
+  echo "Error: $SETTINGS_BIN not found. (Unexpected path?)"
+  exit 1
+fi
 
-    # read official ones
-    if [[ -f "$BUNDLE_FILE_15" ]]; then
-        while IFS= read -r line; do
-            lines+="$line"
-        done < "$BUNDLE_FILE_15"
-    fi
+mkdir -p v15
 
-    # read unconfirmed if you want them
-    if [[ -f "$UNCONFIRMED_FILE_15" ]]; then
-        while IFS= read -r line; do
-            lines+="$line"
-        done < "$UNCONFIRMED_FILE_15"
-    fi
+# Convert the plist to JSON; save for debugging
+TMP_JSON="$(mktemp -t sidebar.json.XXXXXX)"
+plutil -convert json -o "$TMP_JSON" "$SIDEBAR_PLIST" 2>/dev/null
 
-    # remove duplicates; we only want unique lines of "com.apple.XXXX"
-    lines=(${(u)lines})
+# Optional: peek at the JSON for troubleshooting
+# echo "Debug: printing $TMP_JSON"
+# cat "$TMP_JSON"
 
-    # For each raw com.apple.* line, create a user-friendly label.
-    # Output format: "LABEL|IDENTIFIER".
-    local output=()
-    for identifier in "${lines[@]}"; do
-        local label="$identifier"
+# Defensive jq query:
+# - The top level is an array of objects.
+# - Some objects have a 'content' array. We select only those.
+# - Then flatten out each 'content' array item if it exists.
+set +e
+jq_output=$(
+  jq -r '[.[]? | select(.content != null) | .content[]?] | unique | .[]' "$TMP_JSON" 2>/dev/null
+)
+rc=$?
+set -e
 
-        # 1) Remove "com.apple."
-        label="${label#com.apple.}"
+if [[ $rc -ne 0 || -z "$jq_output" ]]; then
+  echo "Warning: The plist did not yield any 'com.apple.*' items. Possibly the structure changed or is empty."
+  echo "Output from jq was empty or errored out."
+  # If you want to fail the script entirely, uncomment next line
+  # exit 1
+fi
 
-        # 2) Remove possible leading "systempreferences."
-        label="${label#systempreferences.}"
+# Now filter only those that match com.apple. to be safe, then sort
+sorted_plist_ids=$(echo "$jq_output" | grep '^com\.apple\.' | sort -u)
 
-        # 3) Remove common suffix patterns:
-        #    e.g. "-Settings.extension", ".extension", "-Settings", "-extension"
-        #    We'll just chain multiple seds or one big one:
-        label="$(echo "$label" \
-          | sed 's/-Settings\.extension$//' \
-          | sed 's/\.extension$//' \
-          | sed 's/-Settings$//' \
-          | sed 's/-extension$//')"
+# Output official list
+echo "$sorted_plist_ids" > v15/macOS_System_Settings_bundle_identifiers.txt
 
-        # 4) Lowercase or keep as is? Some people prefer to keep the mixed case
-        #    We could keep "Touch-ID" or "Touch-Id". Let's preserve the original casing.
+# Next, gather unconfirmed .extension IDs from the System Settings binary
+strings "$SETTINGS_BIN" \
+  | awk '/^com\.apple\./ {print $1}' \
+  | grep '\.extension$' \
+  | sort -u \
+  | comm -23 - v15/macOS_System_Settings_bundle_identifiers.txt \
+  > v15/unconfirmed_preference_panels.txt
 
-        # Store in "LABEL|IDENTIFIER" format
-        output+=("$label|$identifier")
-    done
-
-    # Sort by label
-    # We'll do a custom sort that sorts by label only (before the pipe).
-    # We can do that with `sort -t'|' -k1,1`.
-    # But zsh's builtin sort might not have that. Let's just do:
-    printf '%s\n' "${output[@]}" | sort -t'|' -k1,1 
-}
-
-# -----------------------------------------------------------
-# For older macOS: list prefPane names.
-# We'll just output "PaneName|PaneName" to keep it consistent.
-# -----------------------------------------------------------
-_get_macos_legacy_identifiers() {
-    if [[ ! -d "$LEGACY_SETTINGS_PATH" ]]; then
-        return
-    fi
-
-    # find .prefPane => output lines as "Displays|Displays", "Keyboard|Keyboard", etc.
-    find "$LEGACY_SETTINGS_PATH" -name "*.prefPane" -exec basename {} .prefPane \; \
-      | sort | uniq \
-      | while read -r name; do
-          echo "$name|$name"
-        done
-}
-
-# -----------------------------------------------------------
-# MAIN: Return lines of "LABEL|IDENTIFIER" for completion 
-# and for the settings function to parse.
-# -----------------------------------------------------------
-_get_system_settings() {
-    local osver="$(_get_macos_version)"
-
-    if (( osver >= 15 )); then
-        _get_macos_15_identifiers
-    else
-        _get_macos_legacy_identifiers
-    fi
-}
-
-# -----------------------------------------------------------
-# Debug
-# -----------------------------------------------------------
-_debug() {
-    [[ -n "$DEBUG_MAC_SYSTEM_SETTINGS" ]] && echo "$@" >&2
-}
-
-# -----------------------------------------------------------
-# The 'settings' command
-#   Usage: settings [panelLabel]
-# 
-# We'll interpret the user's input as the "label" portion. 
-# Then we find the matching "identifier" from _get_system_settings.
-# -----------------------------------------------------------
-settings() {
-    local panel="$1"
-    local osver="$(_get_macos_version)"
-
-    # If no panel specified, just list the user-friendly labels
-    if [[ -z "$panel" ]]; then
-        # Print them in one column, showing label only
-        _get_system_settings | while IFS='|' read -r label identifier; do
-            echo "$label"
-        done
-        return 0
-    fi
-
-    local -a entries
-    entries=($(_get_system_settings))
-
-    local matched_identifier=""
-    local matched_label=""
-
-    # 1) Try exact match on the label (case-insensitive).
-    for e in "${entries[@]}"; do
-        local label="${e%%|*}"
-        local identifier="${e#*|}"
-        
-        if [[ "${label:l}" == "${panel:l}" ]]; then
-            matched_label="$label"
-            matched_identifier="$identifier"
-            break
-        fi
-    done
-
-    # 2) If no exact match, do partial match (case-insensitive substring).
-    if [[ -z "$matched_identifier" ]]; then
-        for e in "${entries[@]}"; do
-            local label="${e%%|*}"
-            local identifier="${e#*|}"
-
-            if [[ "${label:l}" == *"${panel:l}"* ]]; then
-                matched_label="$label"
-                matched_identifier="$identifier"
-                break
-            fi
-        done
-    fi
-
-    if [[ -z "$matched_identifier" ]]; then
-        echo "Failed to open settings panel: '$panel'"
-        echo "Available panels:"
-        _get_system_settings | while IFS='|' read -r lbl ident; do
-            echo "  $lbl"
-        done
-        return 1
-    fi
-
-    # Now open the matched identifier
-    if (( osver >= 15 )); then
-        # For macOS 15, it's "com.apple.*"
-        _debug "Opening: x-apple.systempreferences:$matched_identifier"
-        open "x-apple.systempreferences:$matched_identifier"
-    else
-        # For older macOS, the identifier is the .prefPane name
-        _debug "Opening legacy prefPane: $matched_identifier"
-        open -b com.apple.systempreferences "$LEGACY_SETTINGS_PATH/${matched_identifier}.prefPane" 2>/dev/null
-    fi
-}
-
-# End of file
+echo "Done."
+echo "Official list in:      v15/macOS_System_Settings_bundle_identifiers.txt"
+echo "Unconfirmed list in:   v15/unconfirmed_preference_panels.txt"
