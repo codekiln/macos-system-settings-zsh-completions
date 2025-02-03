@@ -1,6 +1,6 @@
 # macos-system-settings-zsh-completions
 
-A Zsh plugin that provides tab completions for quickly opening macOS **System Settings** (formerly System Preferences) directly from the terminal.  
+An [ohmyzsh](https://github.com/ohmyzsh/ohmyzsh) [plugin](https://github.com/ohmyzsh/ohmyzsh/wiki/plugins) that provides tab completions for quickly opening macOS **System Settings** (formerly System Preferences) directly from the terminal.  
 
 ## Overview
 
@@ -54,12 +54,21 @@ That’s it! Now typing `settings` followed by a partial name and pressing `<TAB
   ~~~
 
 - **Open a specific panel**:
-~~~bash
-settings displays
-settings trackpad
-settings battery
-~~~
-Under the hood, it’s equivalent to:
+  ~~~bash
+  settings displays
+  settings trackpad
+  settings battery
+  ~~~
+
+- **Tab Completion**:
+  ~~~bash
+  $settings F<TAB>
+  Family-Settings                             -- Open Family-Settings panel
+  Focus-Settings                              -- Open Focus-Settings panel
+  FollowUpSettings.FollowUpSettingsExtension  -- Open FollowUpSettings.Follo
+  ~~~
+
+Under the hood, the executed command is equivalent to:
 ~~~bash
 open "x-apple.systempreferences:com.apple.Displays-Settings.extension"
 ~~~
@@ -80,7 +89,8 @@ settings battery
 ## Under the Hood
 
 1. For **macOS 15** and newer:  
- - We maintain a list of discovered `com.apple.*` bundle identifiers in `v15/`.  
+ - [update-macos-settings-bundle-identifiers.zsh](./update-macos-settings-bundle-identifiers.zsh) discovers `com.apple.*` bundle identifiers and puts them in the `v15/`, where they are committed for later reference in the script.
+   - See the source for details.
  - The plugin shows these as human‐friendly labels (e.g., `displays` instead of `com.apple.Displays-Settings.extension`).  
  - When you run `settings displays`, it internally calls `open "x-apple.systempreferences:com.apple.Displays-Settings.extension"`.
 
