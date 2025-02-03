@@ -51,8 +51,6 @@ That’s it! Now typing `settings` followed by a partial name and pressing `<TAB
   Battery-Settings                                  -- Open Battery-Settings panel
   BluetoothSettings                                 -- Open BluetoothSettings panel
   CD-DVD-Settings                                   -- Open CD-DVD-Settings panel
-  Classroom-Settings                                -- Open Classroom-Settings panel
-  ClassroomSettings                                 -- Open ClassroomSettings panel
   ~~~
 
 - **Open a specific panel**:
