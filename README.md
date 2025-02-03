@@ -45,15 +45,15 @@ That’s it! Now typing `settings` followed by a partial name and pressing `<TAB
   You’ll see suggestions like:
   ~~~
   $ settings                        
-Accessibility-Settings                            -- Open Accessibility-Settings panel
-AirDrop-Handoff-Settings                          -- Open AirDrop-Handoff-Settings panel
-Appearance-Settings                               -- Open Appearance-Settings panel
-Battery-Settings                                  -- Open Battery-Settings panel
-BluetoothSettings                                 -- Open BluetoothSettings panel
-CD-DVD-Settings                                   -- Open CD-DVD-Settings panel
-Classroom-Settings                                -- Open Classroom-Settings panel
-ClassroomSettings                                 -- Open ClassroomSettings panel
-   ~~~
+  Accessibility-Settings                            -- Open Accessibility-Settings panel
+  AirDrop-Handoff-Settings                          -- Open AirDrop-Handoff-Settings panel
+  Appearance-Settings                               -- Open Appearance-Settings panel
+  Battery-Settings                                  -- Open Battery-Settings panel
+  BluetoothSettings                                 -- Open BluetoothSettings panel
+  CD-DVD-Settings                                   -- Open CD-DVD-Settings panel
+  Classroom-Settings                                -- Open Classroom-Settings panel
+  ClassroomSettings                                 -- Open ClassroomSettings panel
+  ~~~
 
 - **Open a specific panel**:
 ~~~bash
